@@ -19,10 +19,10 @@ export const getAppVersion = (): string => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { version } = require('../../package.json');
 
-  let finalVersion = version;
+  let finalVersion = `${version} + Quick Connect`;
 
   if (version === '0.1.0') {
-    finalVersion = `develop-${getCommitTag()}`;
+    finalVersion = `develop-${getCommitTag()} + Quick Connect`;
   }
 
   return finalVersion;
