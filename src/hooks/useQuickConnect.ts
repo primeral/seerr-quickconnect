@@ -27,7 +27,7 @@ export const useQuickConnect = ({
   const [isExpired, setIsExpired] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const pollingInterval = useRef<NodeJS.Timeout>();
+  const pollingInterval = useRef<NodeJS.Timeout | null>(null);
   const isMounted = useRef(true);
   const hasInitiated = useRef(false);
   const errorCount = useRef(0);
@@ -48,7 +48,7 @@ export const useQuickConnect = ({
       hasInitiated.current = false;
       if (pollingInterval.current) {
         clearInterval(pollingInterval.current);
-        pollingInterval.current = undefined;
+        pollingInterval.current = null;
       }
     }
   }, [show]);
