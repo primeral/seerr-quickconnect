@@ -52,10 +52,15 @@ router.get<unknown, StatusResponse>('/status', async (req, res) => {
 
   const currentVersion = getAppVersion();
   const commitTag = getCommitTag();
+  const isQuickConnectFork = currentVersion.includes('Quick Connect');
   let updateAvailable = false;
   let commitsBehind = 0;
 
-  if (currentVersion.startsWith('develop-') && commitTag !== 'local') {
+  if (
+    !isQuickConnectFork &&
+    currentVersion.startsWith('develop-') &&
+    commitTag !== 'local'
+  ) {
     const commits = await githubApi.getSeerrCommits();
 
     if (commits.length) {
@@ -74,7 +79,7 @@ router.get<unknown, StatusResponse>('/status', async (req, res) => {
         commitsBehind = commitIndex;
       }
     }
-  } else if (commitTag !== 'local') {
+  } else if (!isQuickConnectFork && commitTag !== 'local') {
     const releases = await githubApi.getSeerrReleases();
 
     if (releases.length) {
