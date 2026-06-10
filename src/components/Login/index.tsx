@@ -71,12 +71,42 @@ const Login = () => {
   // valid user, we redirect the user to the home page as the login was successful.
   useEffect(() => {
     if (user) {
-      const nextPath =
+      const storedNextPath =
+        typeof window !== 'undefined'
+          ? window.sessionStorage.getItem('seerr-qc-next-path')
+          : null;
+
+      const rawNextPath =
         typeof router.query.next === 'string' &&
         router.query.next.startsWith('/') &&
         !router.query.next.startsWith('//')
           ? router.query.next
-          : '/';
+          : storedNextPath?.startsWith('/') && !storedNextPath.startsWith('//')
+            ? storedNextPath
+            : '/';
+
+      if (typeof window !== 'undefined') {
+        window.sessionStorage.removeItem('seerr-qc-next-path');
+      }
+
+      const isRequestMounted =
+        typeof window !== 'undefined' &&
+        window.location.pathname.startsWith('/request/');
+
+      const nextPath = isRequestMounted
+        ? rawNextPath === '/'
+          ? '/request'
+          : rawNextPath.startsWith('/request/')
+            ? rawNextPath
+            : `/request${rawNextPath}`
+        : rawNextPath.startsWith('/request/')
+          ? rawNextPath.replace(/^\/request/, '') || '/'
+          : rawNextPath;
+
+      if (isRequestMounted) {
+        window.location.assign(nextPath);
+        return;
+      }
 
       router.push(nextPath);
     }

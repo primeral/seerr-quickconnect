@@ -49,7 +49,25 @@ const ActivatePage: NextPage = () => {
 
   useEffect(() => {
     if (user === null && router.isReady) {
-      router.push(`/login?next=${encodeURIComponent(router.asPath)}`);
+      const nextPath =
+        typeof window !== 'undefined'
+          ? `${window.location.pathname}${window.location.search}`
+          : router.asPath;
+
+      if (typeof window !== 'undefined') {
+        window.sessionStorage.setItem('seerr-qc-next-path', nextPath);
+
+        const loginPath = window.location.pathname.startsWith('/request/')
+          ? '/request/login'
+          : '/login';
+
+        window.location.assign(
+          `${loginPath}?next=${encodeURIComponent(nextPath)}`
+        );
+        return;
+      }
+
+      router.push(`/login?next=${encodeURIComponent(nextPath)}`);
     }
   }, [router, user]);
 

@@ -309,8 +309,15 @@ CoreApp.getInitialProps = async (initialProps) => {
         // _AND_ we are not already on the login or setup route, redirect to /login with a 307
         // before anything actually renders
         if (!router.pathname.match(/(login|setup|resetpassword)/)) {
+          const nextPath =
+            ctx.req?.url?.startsWith('/') && !ctx.req.url.startsWith('//')
+              ? ctx.req.url
+              : router.asPath.startsWith('/') && !router.asPath.startsWith('//')
+                ? router.asPath
+                : '/';
+
           ctx.res.writeHead(307, {
-            Location: '/login',
+            Location: `/login?next=${encodeURIComponent(nextPath)}`,
           });
           ctx.res.end();
         }

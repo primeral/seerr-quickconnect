@@ -680,7 +680,22 @@ authRoutes.post(
       });
     }
 
-    if (!req.user?.jellyfinAuthToken || !req.user?.jellyfinUserId) {
+    const currentUser = req.user;
+    if (!currentUser) {
+      return next({
+        status: 403,
+        message: 'You must be signed in to authorize a Quick Connect code.',
+      });
+    }
+
+    const userRepository = getRepository(User);
+    const jellyfinUser = await userRepository
+      .createQueryBuilder('user')
+      .addSelect(['user.jellyfinAuthToken', 'user.jellyfinDeviceId'])
+      .where('user.id = :id', { id: currentUser.id })
+      .getOne();
+
+    if (!jellyfinUser?.jellyfinAuthToken || !jellyfinUser.jellyfinUserId) {
       return next({
         status: 403,
         message: 'A linked Jellyfin account is required.',
@@ -701,8 +716,8 @@ authRoutes.post(
       const hostname = getHostname();
       const jellyfinServer = new JellyfinAPI(
         hostname ?? '',
-        req.user.jellyfinAuthToken,
-        req.user.jellyfinDeviceId
+        jellyfinUser.jellyfinAuthToken,
+        jellyfinUser.jellyfinDeviceId
       );
 
       const authorized = await jellyfinServer.authorizeQuickConnect(code);
@@ -713,8 +728,8 @@ authRoutes.post(
         label: 'Auth',
         error: e.message,
         ip: req.ip,
-        userId: req.user.id,
-        jellyfinUserId: req.user.jellyfinUserId,
+        userId: currentUser.id,
+        jellyfinUserId: jellyfinUser.jellyfinUserId,
       });
       return next({
         status: e.statusCode || 500,
