@@ -32,7 +32,7 @@ RUN if [ -d node_modules/.pnpm ]; then \
 
 FROM base AS build
 
-ARG COMMIT_TAG
+ARG COMMIT_TAG=local
 ENV COMMIT_TAG=${COMMIT_TAG}
 
 RUN \
