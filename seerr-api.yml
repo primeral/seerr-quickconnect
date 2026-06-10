@@ -4044,6 +4044,41 @@ paths:
                     example: false
         '404':
           description: Quick Connect session not found or expired
+  /auth/jellyfin/quickconnect/authorize:
+    post:
+      summary: Authorize a Jellyfin Quick Connect code
+      description: Authorizes a pending Jellyfin Quick Connect code using the currently authenticated user's linked Jellyfin account.
+      tags:
+        - auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  example: '123456'
+              required:
+                - code
+      responses:
+        '200':
+          description: Quick Connect code authorization result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  authorized:
+                    type: boolean
+                    example: true
+        '400':
+          description: Invalid Quick Connect code format
+        '403':
+          description: User is not authenticated or does not have a linked Jellyfin account
+        '500':
+          description: Authorization failed
   /auth/jellyfin/quickconnect/authenticate:
     post:
       summary: Authenticate with Quick Connect
