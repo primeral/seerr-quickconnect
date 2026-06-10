@@ -16,7 +16,6 @@ import { XCircleIcon } from '@heroicons/react/24/solid';
 import { MediaServerType } from '@server/constants/server';
 import axios from 'axios';
 import { useRouter } from 'next/dist/client/router';
-import Image from 'next/image';
 import { useEffect, useRef, useState, type JSX } from 'react';
 import { useIntl } from 'react-intl';
 import { CSSTransition, SwitchTransition } from 'react-transition-group';
@@ -166,7 +165,7 @@ const Login = () => {
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={`${router.basePath}/os_icon.svg`}
+              src="/os_icon.svg"
               alt={settings.currentSettings.applicationTitle}
               className="mr-2 h-5"
             />
@@ -201,7 +200,12 @@ const Login = () => {
       </div>
       <div className="relative z-40 mt-10 flex flex-col items-center px-4 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="relative h-48 w-full max-w-full">
-          <Image src={`${router.basePath}/logo_stacked.svg`} alt="Logo" fill />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo_stacked.svg"
+            alt="Logo"
+            className="h-full w-full object-contain"
+          />
         </div>
       </div>
       <div className="relative z-50 mt-8 sm:mx-auto sm:w-full sm:max-w-md">
