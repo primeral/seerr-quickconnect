@@ -274,6 +274,26 @@ class JellyfinAPI extends ExternalAPI {
     }
   }
 
+  public async authorizeQuickConnect(code: string): Promise<boolean> {
+    try {
+      const response = await this.post<boolean>(
+        '/QuickConnect/Authorize',
+        undefined,
+        { params: { code } },
+        0
+      );
+
+      return response;
+    } catch (e) {
+      logger.error(
+        `Something went wrong while authorizing Quick Connect: ${e.message}`,
+        { label: 'Jellyfin API', error: e.response?.status }
+      );
+
+      throw new ApiError(e.response?.status, ApiErrorCode.Unknown);
+    }
+  }
+
   public async authenticateQuickConnect(
     secret: string
   ): Promise<JellyfinLoginResponse> {

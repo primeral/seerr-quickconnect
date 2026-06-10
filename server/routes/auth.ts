@@ -30,6 +30,14 @@ export const quickConnectSecret = z.object({
     .regex(/^[A-Fa-f0-9]+$/),
 });
 
+const quickConnectCode = z.object({
+  code: z
+    .string()
+    .min(6)
+    .max(32)
+    .regex(/^[A-Za-z0-9]+$/),
+});
+
 authRoutes.get('/me', isAuthenticated(), async (req, res) => {
   const userRepository = getRepository(User);
   if (!req.user) {
@@ -658,6 +666,63 @@ authRoutes.get('/jellyfin/quickconnect/check', async (req, res, next) => {
     });
   }
 });
+
+authRoutes.post(
+  '/jellyfin/quickconnect/authorize',
+  isAuthenticated(),
+  async (req, res, next) => {
+    const settings = getSettings();
+
+    if (settings.main.mediaServerType !== MediaServerType.JELLYFIN) {
+      return next({
+        status: 500,
+        message: 'Quick Connect authorization is only available with Jellyfin.',
+      });
+    }
+
+    if (!req.user?.jellyfinAuthToken || !req.user?.jellyfinUserId) {
+      return next({
+        status: 403,
+        message: 'A linked Jellyfin account is required.',
+      });
+    }
+
+    const result = quickConnectCode.safeParse(req.body);
+    if (!result.success) {
+      return next({
+        status: 400,
+        message: 'Invalid Quick Connect code format',
+      });
+    }
+
+    const { code } = result.data;
+
+    try {
+      const hostname = getHostname();
+      const jellyfinServer = new JellyfinAPI(
+        hostname ?? '',
+        req.user.jellyfinAuthToken,
+        req.user.jellyfinDeviceId
+      );
+
+      const authorized = await jellyfinServer.authorizeQuickConnect(code);
+
+      return res.status(200).json({ authorized });
+    } catch (e) {
+      logger.error('Quick Connect authorization failed', {
+        label: 'Auth',
+        error: e.message,
+        ip: req.ip,
+        userId: req.user.id,
+        jellyfinUserId: req.user.jellyfinUserId,
+      });
+      return next({
+        status: e.statusCode || 500,
+        message: 'Failed to authorize Quick Connect code.',
+      });
+    }
+  }
+);
 
 authRoutes.post(
   '/jellyfin/quickconnect/authenticate',
