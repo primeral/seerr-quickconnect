@@ -71,7 +71,14 @@ const Login = () => {
   // valid user, we redirect the user to the home page as the login was successful.
   useEffect(() => {
     if (user) {
-      router.push('/');
+      const nextPath =
+        typeof router.query.next === 'string' &&
+        router.query.next.startsWith('/') &&
+        !router.query.next.startsWith('//')
+          ? router.query.next
+          : '/';
+
+      router.push(nextPath);
     }
   }, [user, router]);
 
