@@ -165,7 +165,7 @@ const Login = () => {
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/os_icon.svg"
+              src="/request/os_icon.svg"
               alt={settings.currentSettings.applicationTitle}
               className="mr-2 h-5"
             />
@@ -202,7 +202,7 @@ const Login = () => {
         <div className="relative h-48 w-full max-w-full">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/logo_stacked.svg"
+            src="/request/logo_stacked.svg"
             alt="Logo"
             className="h-full w-full object-contain"
           />
