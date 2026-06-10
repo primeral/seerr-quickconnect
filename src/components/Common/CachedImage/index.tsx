@@ -18,9 +18,11 @@ const CachedImage = ({ src, type, ...props }: CachedImageProps) => {
   const { currentSettings } = useSettings();
   const router = useRouter();
 
-  const withBasePath = (url: string) =>
-    router.basePath && url.startsWith('/') && !url.startsWith(router.basePath)
-      ? `${router.basePath}${url}`
+  const mountedPath = router.basePath || '/request';
+
+  const withMountedPath = (url: string) =>
+    mountedPath && url.startsWith('/') && !url.startsWith(mountedPath)
+      ? `${mountedPath}${url}`
       : url;
 
   let imageUrl: string;
@@ -50,7 +52,7 @@ const CachedImage = ({ src, type, ...props }: CachedImageProps) => {
     <Image
       unoptimized
       loader={imageLoader}
-      src={withBasePath(imageUrl)}
+      src={withMountedPath(imageUrl)}
       {...props}
     />
   );
