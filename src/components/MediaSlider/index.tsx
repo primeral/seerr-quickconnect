@@ -1,4 +1,5 @@
 import ShowMoreCard from '@app/components/MediaSlider/ShowMoreCard';
+import { withMountedPath } from '@app/utils/mountedPath';
 import PersonCard from '@app/components/PersonCard';
 import Slider from '@app/components/Slider';
 import TitleCard from '@app/components/TitleCard';
@@ -179,7 +180,11 @@ const MediaSlider = ({
     <>
       <div className="slider-header">
         {linkUrl ? (
-          <Link href={linkUrl} className="slider-title min-w-0 pr-16">
+          <Link
+            href={linkUrl}
+            as={withMountedPath(linkUrl)}
+            className="slider-title min-w-0 pr-16"
+          >
             <span className="truncate">{title}</span>
             <ArrowRightCircleIcon />
           </Link>

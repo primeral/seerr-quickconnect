@@ -1,4 +1,5 @@
 import CachedImage from '@app/components/Common/CachedImage';
+import { withMountedPath } from '@app/utils/mountedPath';
 import TitleCard from '@app/components/TitleCard';
 import defineMessages from '@app/utils/defineMessages';
 import { ArrowRightCircleIcon } from '@heroicons/react/24/solid';
@@ -34,6 +35,7 @@ const ShowMoreCard = ({ url, posters }: ShowMoreCardProps) => {
   return (
     <Link
       href={url}
+      as={withMountedPath(url)}
       className={'w-36 sm:w-36 md:w-44'}
       onMouseEnter={() => {
         setHovered(true);

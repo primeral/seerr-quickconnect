@@ -1,4 +1,5 @@
 import CachedImage from '@app/components/Common/CachedImage';
+import { withMountedPath } from '@app/utils/mountedPath';
 import { UserCircleIcon } from '@heroicons/react/24/solid';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -19,10 +20,12 @@ const PersonCard = ({
   canExpand = false,
 }: PersonCardProps) => {
   const [isHovered, setHovered] = useState(false);
+  const personHref = `/person/${personId}`;
 
   return (
     <Link
-      href={`/person/${personId}`}
+      href={personHref}
+      as={withMountedPath(personHref)}
       className={canExpand ? 'w-full' : 'w-36 sm:w-36 md:w-44'}
       onMouseEnter={() => {
         setHovered(true);

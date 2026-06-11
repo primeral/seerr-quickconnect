@@ -12,6 +12,7 @@ import useToasts from '@app/hooks/useToasts';
 import { Permission, UserType, useUser } from '@app/hooks/useUser';
 import globalMessages from '@app/i18n/globalMessages';
 import defineMessages from '@app/utils/defineMessages';
+import { withMountedPath } from '@app/utils/mountedPath';
 import { withProperties } from '@app/utils/typeHelpers';
 import { Transition } from '@headlessui/react';
 import {
@@ -314,6 +315,13 @@ const TitleCard = ({
     type: 'or',
   });
 
+  const titleHref =
+    mediaType === 'movie'
+      ? `/movie/${id}`
+      : mediaType === 'collection'
+        ? `/collection/${id}`
+        : `/tv/${id}`;
+
   return (
     <div
       className={canExpand ? 'w-full' : 'w-36 sm:w-36 md:w-44'}
@@ -495,13 +503,8 @@ const TitleCard = ({
           >
             <div className="absolute inset-0 overflow-hidden rounded-xl">
               <Link
-                href={
-                  mediaType === 'movie'
-                    ? `/movie/${id}`
-                    : mediaType === 'collection'
-                      ? `/collection/${id}`
-                      : `/tv/${id}`
-                }
+                href={titleHref}
+                as={withMountedPath(titleHref)}
                 className="absolute inset-0 h-full w-full cursor-pointer overflow-hidden text-left"
                 style={{
                   background:
