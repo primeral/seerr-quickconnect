@@ -1,4 +1,5 @@
 import Button from '@app/components/Common/Button';
+import { withMountedPath } from '@app/utils/mountedPath';
 import LoadingSpinner from '@app/components/Common/LoadingSpinner';
 import PageTitle from '@app/components/Common/PageTitle';
 import { useUser } from '@app/hooks/useUser';
@@ -67,7 +68,9 @@ const ActivatePage: NextPage = () => {
         return;
       }
 
-      router.push(`/login?next=${encodeURIComponent(nextPath)}`);
+      router.push(
+        withMountedPath(`/login?next=${encodeURIComponent(nextPath)}`)
+      );
     }
   }, [router, user]);
 

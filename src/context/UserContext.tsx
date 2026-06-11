@@ -29,7 +29,7 @@ export const UserContext = ({ initialUser, children }: UserContextProps) => {
       !routing.current
     ) {
       routing.current = true;
-      location.href = '/login';
+      location.href = withMountedPath('/login');
     }
   }, [router, user, error]);
 

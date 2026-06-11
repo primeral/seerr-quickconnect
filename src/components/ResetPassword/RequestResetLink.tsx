@@ -1,4 +1,5 @@
 import Button from '@app/components/Common/Button';
+import { withMountedPath } from '@app/utils/mountedPath';
 import ImageFader from '@app/components/Common/ImageFader';
 import PageTitle from '@app/components/Common/PageTitle';
 import LanguagePicker from '@app/components/Layout/LanguagePicker';
@@ -75,7 +76,7 @@ const ResetPassword = () => {
                   {intl.formatMessage(messages.requestresetlinksuccessmessage)}
                 </p>
                 <span className="mt-4 flex justify-center rounded-md shadow-sm">
-                  <Link href="/login" passHref legacyBehavior>
+                  <Link href={withMountedPath('/login')} passHref legacyBehavior>
                     <Button as="a" buttonType="ghost">
                       <ArrowLeftIcon />
                       <span>{intl.formatMessage(messages.gobacklogin)}</span>
