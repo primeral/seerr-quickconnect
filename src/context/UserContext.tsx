@@ -2,6 +2,7 @@ import type { User } from '@app/hooks/useUser';
 import { useUser } from '@app/hooks/useUser';
 import { useRouter } from 'next/dist/client/router';
 import { useEffect, useRef } from 'react';
+import { withMountedPath } from '@app/utils/mountedPath';
 
 interface UserContextProps {
   initialUser: User;
