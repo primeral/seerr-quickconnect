@@ -12,6 +12,7 @@ interface UseQuickConnectOptions {
   onSuccess: () => void;
   onError?: (error: string) => void;
   authenticate: (secret: string) => Promise<void>;
+  autoActivateWithPortal?: boolean;
 }
 
 export const useQuickConnect = ({
@@ -19,6 +20,7 @@ export const useQuickConnect = ({
   onSuccess,
   onError,
   authenticate,
+  autoActivateWithPortal = false,
 }: UseQuickConnectOptions) => {
   const intl = useIntl();
   const [code, setCode] = useState<string>('');
@@ -147,9 +149,36 @@ export const useQuickConnect = ({
 
       if (!isMounted.current) return;
 
-      setCode(response.data.code);
+      const quickConnectCode = response.data.code;
+      const quickConnectSecret = response.data.secret;
+
+      setCode(quickConnectCode);
       setIsLoading(false);
-      startPolling(response.data.secret);
+      startPolling(quickConnectSecret);
+
+      if (autoActivateWithPortal && typeof window !== 'undefined') {
+        const currentUrl = new URL(window.location.href);
+        const nextPath = currentUrl.searchParams.get('next') || '/';
+
+        if (nextPath.startsWith('/') && !nextPath.startsWith('//')) {
+          window.sessionStorage.setItem('seerr-qc-next-path', nextPath);
+        }
+
+        currentUrl.searchParams.set('qcResume', '1');
+
+        const returnPath = `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`;
+
+        window.sessionStorage.setItem(
+          'seerr-qc-secret',
+          quickConnectSecret
+        );
+
+        window.location.assign(
+          `/activate?code=${encodeURIComponent(
+            quickConnectCode
+          )}&return=${encodeURIComponent(returnPath)}`
+        );
+      }
     } catch {
       if (!isMounted.current) return;
 
@@ -159,7 +188,7 @@ export const useQuickConnect = ({
       setErrorMessage(errMessage);
       onError?.(errMessage);
     }
-  }, [startPolling, onError, intl]);
+  }, [startPolling, onError, intl, autoActivateWithPortal]);
 
   useEffect(() => {
     if (show && !hasInitiated.current) {

@@ -24,6 +24,7 @@ interface JellyfinQuickConnectModalProps {
   onAuthenticated: () => void;
   onError: (error: string) => void;
   mediaServerName: string;
+  autoActivateWithPortal?: boolean;
 }
 
 const JellyfinQuickConnectModal = ({
@@ -31,6 +32,7 @@ const JellyfinQuickConnectModal = ({
   onAuthenticated,
   onError,
   mediaServerName,
+  autoActivateWithPortal = false,
 }: JellyfinQuickConnectModalProps) => {
   const intl = useIntl();
 
@@ -56,6 +58,7 @@ const JellyfinQuickConnectModal = ({
     },
     onError,
     authenticate,
+    autoActivateWithPortal,
   });
 
   const handleClose = () => {

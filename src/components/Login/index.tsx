@@ -42,6 +42,7 @@ const Login = () => {
   const [mediaServerLogin, setMediaServerLogin] = useState(
     settings.currentSettings.mediaServerLogin
   );
+  const quickConnectResumeStarted = useRef(false);
 
   // Effect that is triggered when the `authToken` comes back from the Plex OAuth
   // We take the token and attempt to sign in. If we get a success message, we will
@@ -65,6 +66,71 @@ const Login = () => {
       login();
     }
   }, [authToken, revalidate]);
+
+  useEffect(() => {
+    const resumeQuickConnect = async () => {
+      if (
+        !router.isReady ||
+        user ||
+        quickConnectResumeStarted.current ||
+        typeof window === 'undefined'
+      ) {
+        return;
+      }
+
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('qcResume') !== '1') return;
+
+      const secret = window.sessionStorage.getItem('seerr-qc-secret');
+      if (!secret) {
+        setError('Quick Connect resume failed. Please try again.');
+        return;
+      }
+
+      quickConnectResumeStarted.current = true;
+      setProcessing(true);
+
+      try {
+        let authenticated = false;
+
+        for (let attempt = 0; attempt < 15; attempt++) {
+          const response = await axios.get(
+            '/api/v1/auth/jellyfin/quickconnect/check',
+            {
+              params: { secret },
+            }
+          );
+
+          if (response.data?.authenticated) {
+            authenticated = true;
+            break;
+          }
+
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
+
+        if (!authenticated) {
+          throw new Error('Quick Connect authorization was not completed.');
+        }
+
+        await axios.post('/api/v1/auth/jellyfin/quickconnect/authenticate', {
+          secret,
+        });
+
+        window.sessionStorage.removeItem('seerr-qc-secret');
+        revalidate();
+      } catch (e) {
+        setError(
+          e.response?.data?.message ||
+            e.message ||
+            'Quick Connect resume failed. Please try again.'
+        );
+        setProcessing(false);
+      }
+    };
+
+    resumeQuickConnect();
+  }, [router.isReady, user, revalidate]);
 
   // Effect that is triggered whenever `useUser`'s user changes. If we get a new
   // valid user, we redirect the user to the home page as the login was successful.
