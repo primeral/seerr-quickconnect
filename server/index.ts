@@ -251,6 +251,19 @@ app
     server.use('/imageproxy', clearCookies, imageproxy);
     server.use('/avatarproxy', clearCookies, avatarproxy);
 
+    // Compatibility aliases for Seerr mounted under /request.
+    // This keeps direct Seerr access usable when the client emits /request-prefixed
+    // asset, image proxy, avatar proxy, or page links for Bridge-mounted installs.
+    server.use('/request/imageproxy', clearCookies, imageproxy);
+    server.use('/request/avatarproxy', clearCookies, avatarproxy);
+    server.get('/request/*path', (req, res) => {
+      const strippedPath = req.path.replace(/^\/request/, '') || '/';
+      const queryIndex = req.url.indexOf('?');
+      const queryString = queryIndex >= 0 ? req.url.slice(queryIndex) : '';
+      req.url = `${strippedPath}${queryString}`;
+      return handle(req, res);
+    });
+
     server.get('*path', (req, res) => handle(req, res));
     server.use(
       (

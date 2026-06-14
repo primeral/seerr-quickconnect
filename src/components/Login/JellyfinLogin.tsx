@@ -13,7 +13,6 @@ import { ApiErrorCode } from '@server/constants/error';
 import { MediaServerType, ServerType } from '@server/constants/server';
 import axios from 'axios';
 import { Field, Form, Formik } from 'formik';
-import { useRouter } from 'next/dist/client/router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import * as Yup from 'yup';
@@ -46,7 +45,6 @@ const JellyfinLogin = ({ revalidate, serverType }: JellyfinLoginProps) => {
   const toasts = useToasts();
   const intl = useIntl();
   const settings = useSettings();
-  const router = useRouter();
   const [showQuickConnect, setShowQuickConnect] = useState(false);
   const autoQuickConnectStarted = useRef(false);
 
@@ -71,7 +69,6 @@ const JellyfinLogin = ({ revalidate, serverType }: JellyfinLoginProps) => {
 
   useEffect(() => {
     if (
-      !router.isReady ||
       showQuickConnect ||
       autoQuickConnectStarted.current ||
       typeof window === 'undefined'
@@ -79,12 +76,15 @@ const JellyfinLogin = ({ revalidate, serverType }: JellyfinLoginProps) => {
       return;
     }
 
+    const isRequestMounted = window.location.pathname.startsWith('/request/');
+    if (!isRequestMounted) return;
+
     const params = new URLSearchParams(window.location.search);
     if (params.get('qcResume') === '1') return;
 
     autoQuickConnectStarted.current = true;
     setShowQuickConnect(true);
-  }, [router.isReady, showQuickConnect]);
+  }, [showQuickConnect]);
 
   const LoginSchema = Yup.object().shape({
     username: Yup.string().required(
