@@ -790,7 +790,8 @@ authRoutes.post(
       return next({ status: 400, message: 'Invalid Luna bootstrap payload' });
     }
 
-    const { jellyfinUserId, jellyfinUsername } = result.data;
+    const { jellyfinUsername } = result.data;
+    const jellyfinUserId = result.data.jellyfinUserId.replace(/-/g, "");
 
     if (
       settings.main.mediaServerType === MediaServerType.NOT_CONFIGURED ||

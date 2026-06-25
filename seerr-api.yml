@@ -3994,6 +3994,39 @@ paths:
               required:
                 - username
                 - password
+  /auth/jellyfin/luna/bootstrap:
+    post:
+      summary: Bootstrap a Seerr session from a verified Jellyfin Luna identity
+      description: Creates or updates a Seerr user from a Jellyfin identity verified by the Luna Jellyfin plugin, then generates a session cookie.
+      tags:
+        - auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                jellyfinUserId:
+                  type: string
+                jellyfinUsername:
+                  type: string
+              required:
+                - jellyfinUserId
+                - jellyfinUsername
+      responses:
+        '200':
+          description: Successfully bootstrapped Luna session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid Luna bootstrap payload
+        '403':
+          description: Luna bootstrap unavailable or access denied
+        '500':
+          description: Luna bootstrap failed
   /auth/jellyfin/quickconnect/initiate:
     post:
       summary: Initiate Jellyfin Quick Connect
