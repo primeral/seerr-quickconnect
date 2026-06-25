@@ -22,6 +22,11 @@ import { z } from 'zod';
 
 const authRoutes = Router();
 
+export const lunaBootstrapRequest = z.object({
+  jellyfinUserId: z.string().min(1).max(128),
+  jellyfinUsername: z.string().min(1).max(256),
+});
+
 export const quickConnectSecret = z.object({
   secret: z
     .string()
@@ -768,6 +773,83 @@ authRoutes.post(
       return next({
         status: e.statusCode || 500,
         message: ApiErrorCode.InvalidCredentials,
+      });
+    }
+  }
+);
+
+authRoutes.post(
+  '/jellyfin/luna/bootstrap',
+  isAuthenticated(Permission.ADMIN),
+  async (req, res, next) => {
+    const settings = getSettings();
+    const userRepository = getRepository(User);
+    const result = lunaBootstrapRequest.safeParse(req.body);
+
+    if (!result.success) {
+      return next({ status: 400, message: 'Invalid Luna bootstrap payload' });
+    }
+
+    const { jellyfinUserId, jellyfinUsername } = result.data;
+
+    if (
+      settings.main.mediaServerType === MediaServerType.NOT_CONFIGURED ||
+      !(await userRepository.count())
+    ) {
+      return next({
+        status: 403,
+        message: 'Luna bootstrap is not available during initial setup.',
+      });
+    }
+
+    try {
+      let user = await userRepository.findOne({ where: { jellyfinUserId } });
+      const deviceId = Buffer.from(`BOT_seerr_luna_${jellyfinUserId}`).toString('base64');
+
+      if (user) {
+        user.jellyfinUsername = jellyfinUsername;
+        user.jellyfinDeviceId = deviceId;
+        user.avatar = getUserAvatarUrl(user);
+        await userRepository.save(user);
+      } else if (!settings.main.newPlexLogin) {
+        return next({ status: 403, message: 'Access denied.' });
+      } else {
+        user = new User({
+          email: jellyfinUsername,
+          jellyfinUsername,
+          jellyfinUserId,
+          jellyfinDeviceId: deviceId,
+          permissions: settings.main.defaultPermissions,
+          userType:
+            settings.main.mediaServerType === MediaServerType.JELLYFIN
+              ? UserType.JELLYFIN
+              : UserType.EMBY,
+        });
+        user.avatar = getUserAvatarUrl(user);
+        await userRepository.save(user);
+      }
+
+      if (req.session) {
+        req.session.userId = user.id;
+      }
+
+      logger.info('Luna bootstrap completed', {
+        label: 'API',
+        jellyfinUsername,
+        userId: user.id,
+      });
+
+      return res.status(200).json(user?.filter() ?? {});
+    } catch (e) {
+      logger.error('Luna bootstrap failed', {
+        label: 'Auth',
+        error: e.message,
+        ip: req.ip,
+      });
+
+      return next({
+        status: e.statusCode || 500,
+        message: 'Unable to bootstrap Luna session.',
       });
     }
   }
