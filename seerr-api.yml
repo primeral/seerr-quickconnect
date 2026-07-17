@@ -3994,10 +3994,10 @@ paths:
               required:
                 - username
                 - password
-  /auth/jellyfin/luna/bootstrap:
+  /auth/jellyfin/moonbase/bootstrap:
     post:
-      summary: Bootstrap a Seerr session from a verified Jellyfin Luna identity
-      description: Creates or updates a Seerr user from a Jellyfin identity verified by the Luna Jellyfin plugin, then generates a session cookie.
+      summary: Bootstrap a Seerr session from a verified Moonbase identity
+      description: Creates or updates a Seerr user from an authenticated Jellyfin identity supplied by Moonbase, then generates a session cookie.
       tags:
         - auth
       requestBody:
@@ -4016,17 +4016,17 @@ paths:
                 - jellyfinUsername
       responses:
         '200':
-          description: Successfully bootstrapped Luna session
+          description: Successfully bootstrapped Moonbase session
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
         '400':
-          description: Invalid Luna bootstrap payload
+          description: Invalid Moonbase bootstrap payload
         '403':
-          description: Luna bootstrap unavailable or access denied
+          description: Moonbase bootstrap unavailable or access denied
         '500':
-          description: Luna bootstrap failed
+          description: Moonbase bootstrap failed
   /auth/jellyfin/quickconnect/initiate:
     post:
       summary: Initiate Jellyfin Quick Connect

@@ -506,6 +506,84 @@ describe('POST /auth/jellyfin/quickconnect/authenticate', () => {
   });
 });
 
+describe('POST /auth/jellyfin/moonbase/bootstrap', () => {
+  beforeEach(() => {
+    configureJellyfin();
+  });
+
+  it('requires an authenticated Seerr administrator', async () => {
+    const res = await request(app)
+      .post('/auth/jellyfin/moonbase/bootstrap')
+      .send({
+        jellyfinUserId: 'unauthenticated-user',
+        jellyfinUsername: 'unauthenticated',
+      });
+
+    assert.strictEqual(res.status, 403);
+  });
+
+  it('creates a passwordless session for a new Jellyfin user', async () => {
+    const settings = getSettings();
+    settings.main.newPlexLogin = true;
+    settings.main.defaultPermissions = 32;
+
+    const agent = await authenticatedAgent('admin@seerr.dev', 'test1234');
+    const res = await agent.post('/auth/jellyfin/moonbase/bootstrap').send({
+      jellyfinUserId: '11111111-2222-3333-4444-555555555555',
+      jellyfinUsername: 'moonbase-new-user',
+    });
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.permissions, 32);
+
+    const me = await agent.get('/auth/me');
+    assert.strictEqual(me.status, 200);
+    assert.strictEqual(me.body.jellyfinUsername, 'moonbase-new-user');
+
+    const user = await getRepository(User).findOneOrFail({
+      where: { jellyfinUserId: '11111111222233334444555555555555' },
+    });
+    assert.strictEqual(user.permissions, 32);
+  });
+
+  it('keeps the Luna route as a compatibility alias', async () => {
+    const agent = await authenticatedAgent('admin@seerr.dev', 'test1234');
+    const res = await agent.post('/auth/jellyfin/luna/bootstrap').send({});
+
+    assert.strictEqual(res.status, 400);
+    assert.strictEqual(res.body.message, 'Invalid Moonbase bootstrap payload');
+  });
+
+  it('preserves permissions for an existing Seerr user', async () => {
+    const userRepository = getRepository(User);
+    const existing = new User({
+      email: 'moonbase-existing@seerr.dev',
+      jellyfinUsername: 'old-name',
+      jellyfinUserId: 'existingmoonbaseuser',
+      jellyfinDeviceId: 'old-device',
+      permissions: 64,
+      avatar: '/avatarproxy/existingmoonbaseuser?v=0',
+      userType: UserType.JELLYFIN,
+    });
+    await userRepository.save(existing);
+
+    const agent = await authenticatedAgent('admin@seerr.dev', 'test1234');
+    const res = await agent.post('/auth/jellyfin/moonbase/bootstrap').send({
+      jellyfinUserId: 'existing-moonbase-user',
+      jellyfinUsername: 'updated-name',
+    });
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.permissions, 64);
+
+    const updated = await userRepository.findOneOrFail({
+      where: { jellyfinUserId: 'existingmoonbaseuser' },
+    });
+    assert.strictEqual(updated.jellyfinUsername, 'updated-name');
+    assert.strictEqual(updated.permissions, 64);
+  });
+});
+
 describe('GET /auth/me', () => {
   it('returns 403 when not authenticated', async () => {
     const res = await request(app).get('/auth/me');

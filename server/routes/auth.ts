@@ -22,7 +22,7 @@ import { z } from 'zod';
 
 const authRoutes = Router();
 
-export const lunaBootstrapRequest = z.object({
+export const moonbaseBootstrapRequest = z.object({
   jellyfinUserId: z.string().min(1).max(128),
   jellyfinUsername: z.string().min(1).max(256),
 });
@@ -779,19 +779,22 @@ authRoutes.post(
 );
 
 authRoutes.post(
-  '/jellyfin/luna/bootstrap',
+  ['/jellyfin/moonbase/bootstrap', '/jellyfin/luna/bootstrap'],
   isAuthenticated(Permission.ADMIN),
   async (req, res, next) => {
     const settings = getSettings();
     const userRepository = getRepository(User);
-    const result = lunaBootstrapRequest.safeParse(req.body);
+    const result = moonbaseBootstrapRequest.safeParse(req.body);
 
     if (!result.success) {
-      return next({ status: 400, message: 'Invalid Luna bootstrap payload' });
+      return next({
+        status: 400,
+        message: 'Invalid Moonbase bootstrap payload',
+      });
     }
 
     const { jellyfinUsername } = result.data;
-    const jellyfinUserId = result.data.jellyfinUserId.replace(/-/g, "");
+    const jellyfinUserId = result.data.jellyfinUserId.replace(/-/g, '');
 
     if (
       settings.main.mediaServerType === MediaServerType.NOT_CONFIGURED ||
@@ -799,13 +802,15 @@ authRoutes.post(
     ) {
       return next({
         status: 403,
-        message: 'Luna bootstrap is not available during initial setup.',
+        message: 'Moonbase bootstrap is not available during initial setup.',
       });
     }
 
     try {
       let user = await userRepository.findOne({ where: { jellyfinUserId } });
-      const deviceId = Buffer.from(`BOT_seerr_luna_${jellyfinUserId}`).toString('base64');
+      const deviceId = Buffer.from(
+        `BOT_seerr_moonbase_${jellyfinUserId}`
+      ).toString('base64');
 
       if (user) {
         user.jellyfinUsername = jellyfinUsername;
@@ -834,7 +839,7 @@ authRoutes.post(
         req.session.userId = user.id;
       }
 
-      logger.info('Luna bootstrap completed', {
+      logger.info('Moonbase bootstrap completed', {
         label: 'API',
         jellyfinUsername,
         userId: user.id,
@@ -842,7 +847,7 @@ authRoutes.post(
 
       return res.status(200).json(user?.filter() ?? {});
     } catch (e) {
-      logger.error('Luna bootstrap failed', {
+      logger.error('Moonbase bootstrap failed', {
         label: 'Auth',
         error: e.message,
         ip: req.ip,
@@ -850,7 +855,7 @@ authRoutes.post(
 
       return next({
         status: e.statusCode || 500,
-        message: 'Unable to bootstrap Luna session.',
+        message: 'Unable to bootstrap Moonbase session.',
       });
     }
   }
